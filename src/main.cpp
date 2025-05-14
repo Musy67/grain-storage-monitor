@@ -1,18 +1,45 @@
 #include <Arduino.h>
+#include <DHT.h>
+#include <LiquidCrystal_I2C.h>
 
-// put function declarations here:
-int myFunction(int, int);
+// Definitions
+#define DHT_PIN 2     
+#define DHT_TYPE DHT11
+
+// Object declarations
+DHT dht(DHT_PIN, DHT_TYPE);
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Function declarations
+void dhtSensorCheck(float temp, float humid);
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+  // Components' initialization
+  dht.begin();  
+  lcd.init();
+  Serial.begin(9600);
+  
+  lcd.setCursor(0, 0);
+  lcd.print("Grain Storage");
+  lcd.setCursor(5, 1);
+  lcd.print("Monitor!");
+  delay(1000);
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  lcd.clear();
+
+  // Read temperature and humidity
+  float temp = dht.readTemperature();
+  float humid = dht.readHumidity();
+  
+  dhtSensorCheck(temp, humid); // Checks dht sensor's integrity
 }
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+void dhtSensorCheck(float temp, float humid) {
+  if (isnan(temp) || isnan(humid)) {
+    Serial.println("DHT sensor at fault!");
+    lcd.setCursor(0, 0);
+    lcd.print("No DHT readings!");
+  }
 }
