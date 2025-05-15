@@ -1,8 +1,3 @@
-/* The system code aims to monitor the temperature, humidity and motion status on the storage facility. 
-It then should display the values from the sensors in the dedicated display (LCD for now).
-In case of any un-desired conditional change, the alert lights should come on and SMS alert should be sent to the system user.
-*/
-
 #include <Arduino.h>
 #include <DHT.h>
 #include <LiquidCrystal_I2C.h>
@@ -17,9 +12,8 @@ DHT dht(DHT_PIN, DHT_TYPE);
 LiquidCrystal_I2C lcd(0x27, 16, 2);
 
 // Function declarations
-bool dhtSensorCheck(float temp, float humid);
+bool sensorCheck(float temp, float humid, int motion);
 void dhtMonitoring(float temp, float humid);
-bool pirSensorCheck(int motion);
 void pirMonitoring(int motion);
 
 void setup() {
@@ -50,14 +44,12 @@ void loop() {
   // Read PIR value
   int motion = digitalRead(PIR_PIN);
 
-  if (dhtSensorCheck(temp, humid)) {
-    dhtMonitoring(temp, humid);
+  if (sensorCheck(temp, humid, motion)) {
+    dhtMonitoring(temp, humid); // Display DHT values and report unusual occurence
     delay(1500);
-    lcd.clear();
-  }
+    lcd.clear(); 
 
-  if (pirSensorCheck(motion)) {
-    pirMonitoring(motion);
+    pirMonitoring(motion);      // Display PIR values and report unusual occurence
     delay(1500);
     lcd.clear();
   }
@@ -66,11 +58,17 @@ void loop() {
 }
 
 // Functions
-bool dhtSensorCheck(float temp, float humid) { // Checks DHT sensor's integrity
+bool sensorCheck(float temp, float humid, int motion) { // Checks sensors' integrity
+  lcd.setCursor(0, 0);
   if (isnan(temp) || isnan(humid)) {
     Serial.println("DHT sensor at fault!");
-    lcd.setCursor(0, 0);
     lcd.print("No DHT readings!");
+    digitalWrite(4, HIGH);
+    return false;
+  }
+  else if (isnan(motion)) {
+    Serial.println("PIR sensor at fault");
+    lcd.print("No PIR detection");
     digitalWrite(4, HIGH);
     return false;
   }
@@ -106,20 +104,6 @@ void dhtMonitoring(float temp, float humid) { // Monitors and displays temperatu
   }
 }
 
-bool pirSensorCheck(int motion) { // Checks integrity of PIR sensor
-  if (isnan(motion)) {
-    Serial.println("PIR sensor at fault!");
-    lcd.setCursor(0, 0);
-    lcd.print("No PIR detection");
-    digitalWrite(4, HIGH);
-    return false;
-  }
-  else {
-    digitalWrite(4, LOW);
-    return true;
-  }
-}
-
 void pirMonitoring(int motion) { // Checks and displays motion status
   lcd.setCursor(0, 0);
   if (motion) {
@@ -132,3 +116,5 @@ void pirMonitoring(int motion) { // Checks and displays motion status
     digitalWrite(7, LOW);
   }
 }
+
+/* Put only one function to check the sensor''s integrity.*/
