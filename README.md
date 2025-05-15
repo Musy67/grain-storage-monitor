@@ -1,2 +1,3 @@
-This projects aims to help farmers store their crops with assuarance of the optimal storage conditions.
-It also aims to help them detect spoilage as soon as it occurs in order not to contaminate other storage crops.
+The system code aims to monitor the temperature, humidity and motion status on the storage facility. 
+It then should display the values from the sensors in the dedicated display (LCD for now).
+In case of any un-desired conditional change, the alert lights should come on and SMS alert should be sent to the system user.
