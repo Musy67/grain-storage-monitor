@@ -28,6 +28,7 @@ void setup() {
   // Components' initialization
   dht.begin();  
   lcd.init();
+  lcd.backlight();
   pinMode(PIR_PIN, INPUT);
   pinMode(4, OUTPUT);
   pinMode(5, OUTPUT);
@@ -37,7 +38,7 @@ void setup() {
   simModule.begin(9600);
   
   // Displays welcome message
-  lcd.setCursor(0, 0);
+  lcd.setCursor(1, 0);
   lcd.print("Grain Storage");
   lcd.setCursor(5, 1);
   lcd.print("Monitor!");
