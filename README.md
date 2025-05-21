@@ -4,4 +4,4 @@ In case of any un-desired conditional change, the alert lights should come on an
 
 
 
-As of 16th May, 2025, I want to continue integrate MQ-135 gas sensor for gas spoilage detection.
+As of 22nd May, 2025, circuit working is complete. A SIM-module awaits to deliver message to the user of the system.

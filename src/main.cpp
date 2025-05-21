@@ -6,46 +6,38 @@
 // Definitions
 #define DHT_PIN 2    
 #define DHT_TYPE DHT11
-#define PIR_PIN 3
-#define sim900_RX 13
-#define sim900_TX 12  
+#define PIR_PIN 3 
+#define GAS_PIN A6
 
 // Object declarations
 DHT dht(DHT_PIN, DHT_TYPE);
 LiquidCrystal lcd(A5, A4, A3, A2, A1, A0);
-SoftwareSerial simModule(sim900_RX, sim900_TX); // (TX, RX)
-
-// Global variables
-const String phoneNum = "+255773422381";
 
 // Function declarations
-bool sensorCheck(float temp, float humid, int motion);
+bool dhtSensorCheck(float temp, float humid);
 void dhtMonitoring(float temp, float humid);
 void pirMonitoring(int motion);
-void sendSMS(String phoneNum, String message);
+void gasMonitoring(int gasValue);
 
 void setup() {
   // Components' initialization
   dht.begin();
-  lcd.begin(16, 2);  
+  lcd.begin(16, 2); 
   lcd.backlight();
   pinMode(PIR_PIN, INPUT);
   pinMode(4, OUTPUT);       // Sensor faults
   pinMode(5, OUTPUT);       // Temp out of range    
   pinMode(6, OUTPUT);       // Humidity out of range
   pinMode(7, OUTPUT);       // Motion detected
+  pinMode(8, OUTPUT);       // Spoilage detection
   Serial.begin(9600);
-  simModule.begin(9600);
   
   // Displays welcome message
   lcd.setCursor(1, 0);
   lcd.print("Grain Storage");
   lcd.setCursor(5, 1);
   lcd.print("Monitor!");
-  delay(1000);
-
-  // Test for SIM900 module
-  sendSMS(phoneNum, "Test for SMS!");
+  delay(500);
 }
 
 void loop() {
@@ -55,34 +47,31 @@ void loop() {
   float temp = dht.readTemperature();
   float humid = dht.readHumidity();
 
+  if (dhtSensorCheck(temp, humid)) {
+    dhtMonitoring(temp, humid); // Display DHT values and report unusual occurence
+    delay(500);
+    lcd.clear(); 
+  }
+
   // Read PIR value
   int motion = digitalRead(PIR_PIN);
+  pirMonitoring(motion);      // Display PIR values and report unusual occurence
 
-  if (sensorCheck(temp, humid, motion)) {
-    dhtMonitoring(temp, humid); // Display DHT values and report unusual occurence
-    delay(1500);
-    lcd.clear(); 
-
-    pirMonitoring(motion);      // Display PIR values and report unusual occurence
-    delay(1500);
-    lcd.clear();
-  }
+  // Read gas value
+  int gasValue = analogRead(GAS_PIN);
+  gasMonitoring(gasValue);    // Display GAS values and report unusual occurence
 
   delay(750);
 }
 
 // Functions
-bool sensorCheck(float temp, float humid, int motion) { // Checks sensors' integrity
+bool dhtSensorCheck(float temp, float humid) { // Checks sensors' integrity
   lcd.setCursor(0, 0);
   if (isnan(temp) || isnan(humid)) {
     Serial.println("DHT sensor at fault!");
     lcd.print("No DHT readings!");
-    digitalWrite(4, HIGH);
-    return false;
-  }
-  else if (isnan(motion)) {
-    Serial.println("PIR sensor at fault");
-    lcd.print("No PIR detection");
+    delay(500);
+    lcd.clear();
     digitalWrite(4, HIGH);
     return false;
   }
@@ -131,18 +120,15 @@ void pirMonitoring(int motion) { // Checks and displays motion status
   }
 }
 
-void sendSMS(String phoneNum, String message) {
-  simModule.println("AT");  // Check comms
-  delay(500);
-
-  simModule.println("AT+CMGF=1"); // Set text mode
-  delay(500);
-
-  simModule.println("AT+CMGS=1\"" + phoneNum + "\""); // Set phone number
-  delay(500);
-
-  simModule.print(message);
-  delay(500);
-  simModule.write(26);  // Ctrl+Z to send
-  delay(5000);  
+void gasMonitoring(int gasValue) {
+  lcd.setCursor(0, 1);
+  if (gasValue > 500) {
+    Serial.println("Spoilage detected!");
+    lcd.print("Grain spoiled!");
+    digitalWrite(8, HIGH); 
+  }
+  else {
+    lcd.print("No spoilage!");
+    digitalWrite(8, LOW);
+  }
 }
