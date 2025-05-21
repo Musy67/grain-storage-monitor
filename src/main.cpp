@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <DHT.h>
-#include <LiquidCrystal_I2C.h>
+#include <LiquidCrystal.h>
 #include <SoftwareSerial.h>
 
 // Definitions
@@ -12,7 +12,7 @@
 
 // Object declarations
 DHT dht(DHT_PIN, DHT_TYPE);
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+LiquidCrystal lcd(A5, A4, A3, A2, A1, A0);
 SoftwareSerial simModule(sim900_RX, sim900_TX); // (TX, RX)
 
 // Global variables
@@ -26,14 +26,14 @@ void sendSMS(String phoneNum, String message);
 
 void setup() {
   // Components' initialization
-  dht.begin();  
-  lcd.init();
+  dht.begin();
+  lcd.begin(16, 2);  
   lcd.backlight();
   pinMode(PIR_PIN, INPUT);
-  pinMode(4, OUTPUT);
-  pinMode(5, OUTPUT);
-  pinMode(6, OUTPUT);
-  pinMode(7, OUTPUT);
+  pinMode(4, OUTPUT);       // Sensor faults
+  pinMode(5, OUTPUT);       // Temp out of range    
+  pinMode(6, OUTPUT);       // Humidity out of range
+  pinMode(7, OUTPUT);       // Motion detected
   Serial.begin(9600);
   simModule.begin(9600);
   
