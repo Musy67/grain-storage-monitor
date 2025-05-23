@@ -38,6 +38,10 @@ void setup() {
   lcd.setCursor(5, 1);
   lcd.print("Monitor!");
   delay(500);
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("System booting..");
+  delay(500);
 }
 
 void loop() {
@@ -61,7 +65,7 @@ void loop() {
   int gasValue = analogRead(GAS_PIN);
   gasMonitoring(gasValue);    // Display GAS values and report unusual occurence
 
-  delay(750);
+  delay(500);
 }
 
 // Functions
